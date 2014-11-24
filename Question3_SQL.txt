@@ -1,0 +1,52 @@
+--------------------------------------------------------------------------------
+QUESTION 3
+
+You are given two database tables, EMPLOYEES and BONUS, with the following
+schema.  Data shown below should be considered example data; the actual table
+will contain other data.
+
+   EMPLOYEES                                       BONUS
+   __________________________________________      _____________
+   EMPID  NAME  SUPERVISOR  LOCATION   SALARY      EMPID  NBONUS
+   ------------------------------------------      -------------
+      34  Amy               NY         110000         17    5000
+      17  Ben           34  TN          75000         10    2000
+       5  Chris         34  TN          80000         34    5000
+      10  Don            5  HI         100000      ...
+   ...
+
+A) Write a SQL statement to return the employee's name, supervisor's name and
+   bonus of everyone who got a bonus greater than 1000.
+Ans:
+select emp.Name Employee,
+ super.name SUPERVISOR, bon.nbonus Bonus from EMPLOYEES emp   left outer join  EMPLOYEES super ON emp.SUPERVISOR  = super.empid left outer join BONUS bon
+ON bon.EMPID = emp.EMPID  where bon.nbonus >1000   
+
+B) Write a SQL statement to list the highest paid employee in each location.
+   Ranking should be based on salary plus bonus.  Output should include employee
+   name, salary, bonus, and total pay (salary plus bonus).
+Ans:   
+Select temp1.EMPID,temp1.name, temp1.salary, temp1.bonus,  temp1.location, temp1.total_pay from 
+(
+   Select emp.empid, emp.name, emp.SALARY, 
+            (CASE WHEN bon.NBONUS is null then 0 else bon.NBONUS END) bonus, emp.location ,
+            (emp.SALARY + CASE WHEN bon.NBONUS is null then 0 else bon.NBONUS END) TOTAL_PAY 
+    From EMPLOYEES emp LEFT OUTER JOIN BONUS BON ON emp.EMPID = bon.EMPID
+) temp1
+where temp1.total_pay in (Select max(TOTAL_PAY) from (
+   Select emp.empid, emp.name, emp.SALARY, 
+            (CASE WHEN bon.NBONUS is null then 0 else bon.NBONUS END) bonus, emp.location ,
+            (emp.SALARY + CASE WHEN bon.NBONUS is null then 0 else bon.NBONUS END) TOTAL_PAY 
+    From EMPLOYEES emp LEFT OUTER JOIN BONUS BON ON emp.EMPID = bon.EMPID
+) temp2 GROUP by LOCATION)   
+
+C) Given a NEW_SUPERVISOR table (columns: EMPID, SUPERVISOR), write an update
+   statement that updates the supervisor of each employee with a new supervisor.
+   The NEW_SUPERVISOR table is an incremental update, so employees not listed in
+   the table must retain their existing supervisor.
+
+Ans:
+Update EMPLOYEES 
+set SUPERVISOR = SUPER.SUPERVISOR
+FROM EMPLOYEES EMP  INNER JOIN NEW_SUPERVISOR SUPER ON EMP.EMPID = SUPER.EMPID
+--------------------------------------------------------------------------------
